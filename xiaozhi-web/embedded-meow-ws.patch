@@ -1,0 +1,75 @@
+diff --git a/applications/xiaozhi/env_ws_uploader.h b/applications/xiaozhi/env_ws_uploader.h
+index a5a0e54..e8239fb 100644
+--- a/applications/xiaozhi/env_ws_uploader.h
++++ b/applications/xiaozhi/env_ws_uploader.h
+@@ -18,9 +18,14 @@ extern "C" {
+  */
+ rt_err_t env_ws_uploader_start(rt_uint32_t period_ms);
+ 
++/*
++ * Send one text frame through the existing XiaoZhi WebSocket while holding
++ * the shared write mutex. Returns RT_TRUE when the frame was queued.
++ */
++rt_bool_t ws_send_text_locked(const char *msg);
++
+ #ifdef __cplusplus
+ }
+ #endif
+ 
+ #endif /* ENV_WS_UPLOADER_H */
+-
+diff --git a/applications/xiaozhi/env_ws_uploader.c b/applications/xiaozhi/env_ws_uploader.c
+index 8824b42..f514710 100644
+--- a/applications/xiaozhi/env_ws_uploader.c
++++ b/applications/xiaozhi/env_ws_uploader.c
+@@ -29,7 +29,7 @@ static aht10_device_t s_aht_dev = RT_NULL;
+ 
+ extern xiaozhi_app_t g_app;
+ 
+-static rt_bool_t ws_send_text_locked(const char *msg)
++rt_bool_t ws_send_text_locked(const char *msg)
+ {
+     if (!g_app.ws.is_connected || !g_app.ws.ws_write_mutex)
+     {
+@@ -122,4 +122,3 @@ rt_err_t env_ws_uploader_start(rt_uint32_t period_ms)
+     rt_thread_startup(s_env_tid);
+     return RT_EOK;
+ }
+-
+diff --git a/applications/xiaozhi/wake_word/meow_detect_once.cpp b/applications/xiaozhi/wake_word/meow_detect_once.cpp
+index 68124aa..135b2c7 100644
+--- a/applications/xiaozhi/wake_word/meow_detect_once.cpp
++++ b/applications/xiaozhi/wake_word/meow_detect_once.cpp
+@@ -29,6 +29,8 @@
+ #include "tflite-model/hachimitsu_detector_int8_no_mel.h"
+ 
+ // UI helpers
++#include "env_ws_uploader.h"
++#include "xiaozhi.h"
+ #include "xiaozhi_ui.h"
+ 
+ /* Audio device name */
+@@ -501,6 +503,18 @@ static void meow_detect_thread_entry(void *parameter)
+         {
+             xiaozhi_ui_set_meow_result(ui_detected ? true : false, score);
+         }
++        if (g_app.ws.session_id[0] != '\0')
++        {
++            char meow_msg[128];
++            rt_snprintf(meow_msg, sizeof(meow_msg),
++                        "{\"session_id\":\"%s\",\"type\":\"meow\","
++                        "\"score\":%.3f,\"is_cat\":%s,\"ts\":%u}",
++                        g_app.ws.session_id,
++                        score,
++                        confirmed_detected ? "true" : "false",
++                        (unsigned)rt_tick_get());
++            (void)ws_send_text_locked(meow_msg);
++        }
+         /* Keep LED behavior consistent with UI:
+          * - UI shows "MEOW DETECTED" as soon as score crosses threshold
+          * - confirmed_detected is throttled by cooldown to avoid repeated triggers
+@@ -673,4 +687,3 @@ static int meow_detect_once(void)
+ 
+ MSH_CMD_EXPORT(meow_detect_once, Capture mic0 audio (16000 samples) and run meow model once);
+ #endif
+-

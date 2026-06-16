@@ -1,0 +1,77 @@
+# =====================================================================
+#  智能猫窝 (Smart Cat-Care) — monorepo .gitignore
+#  纳入：云端源码 / 前端源码 / 两块开发板完整 RT-Thread 工程(不含构建产物)
+#  排除：密钥、数据库、AI模型、构建产物、工具链、依赖、备份、日志
+#  注意：gitignore 的 # 只在行首才是注释，规则后不要写行尾注释！
+# =====================================================================
+
+# ---------- 通用 ----------
+*.log
+*.zip
+*.tmp
+.tmp/
+.tmp-*
+.DS_Store
+Thumbs.db
+.claude/
+.idea/
+.vscode/
+.settings/
+add_warnings.txt
+
+# ---------- 顶层杂项 / 备份 / 过期副本 ----------
+# 顶层 key_camera 为 4 月过期副本，board2 真身在 UDP/UDP/key_camera
+/.compare-backup-20260521/
+/.compare-backup-selected-20260521/
+/.tmp-original/
+/_backup_compare/
+/key_camera/
+/项目现状-2026-05-19.md
+/board1-serial-*.log
+/docs/superpowers/
+xiaozhi-server/_git_server_backup/
+
+# ---------- 工具链 / 二进制工具(README 说明从官方获取) ----------
+/tools/openocd-5.16.1.4486-windows/
+Edgi_Talk_M55_XiaoZhi_2/Edgi_Talk_M55_XiaoZhi/tools/
+
+# ---------- 云端 xiaozhi-server ----------
+# .env 含 DEEPSEEK_API_KEY，仅提交 .env.example
+# models/ 是 848MB FunASR 语音模型，photos/ 是运行时上传照片
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.env
+*.db
+xiaozhi-server/models/
+xiaozhi-server/photos/
+xiaozhi-server/*.jpg
+xiaozhi-server/*.wav
+
+# ---------- 前端 xiaozhi-web ----------
+node_modules/
+dist/
+*.tgz
+
+# ---------- 嵌入式公共：RT-Thread 构建产物 ----------
+build/
+Debug/
+*.elf
+*.hex
+*.bin
+*.axf
+*.map
+*.o
+*.obj
+*.d
+*.dep
+*.lib
+*.dblite
+*.old
+cconfig.h
+
+# ModusToolbox IDE 生成的调试启动配置(超长路径/特殊字符，构建不需要)
+*.launch

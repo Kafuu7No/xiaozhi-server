@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@plugin "daisyui" {
+  themes: corporate --default;
+}
+
+@layer base {
+  :root {
+    color: #0f172a;
+    background: #f5f6fa;
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    background: #f5f6fa;
+    color: #0f172a;
+  }
+
+  #app {
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .app-card {
+    @apply rounded-xl border border-gray-100 bg-white shadow-sm;
+  }
+
+  .app-card-body {
+    @apply p-5;
+  }
+
+  .section-label {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-slate-400;
+  }
+
+  .offline-banner {
+    @apply flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-500;
+  }
+
+  .online-banner {
+    @apply flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700;
+  }
+
+  .metric-value {
+    @apply text-4xl font-semibold text-slate-900;
+  }
+
+  .muted-note {
+    @apply text-sm text-slate-400;
+  }
+}

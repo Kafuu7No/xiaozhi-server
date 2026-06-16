@@ -1,0 +1,6 @@
+#ifndef __XIAOZHI_LOCAL_CONFIG_H__
+#define __XIAOZHI_LOCAL_CONFIG_H__
+
+#define XIAOZHI_HOST "192.168.137.1"
+
+#endif /* __XIAOZHI_LOCAL_CONFIG_H__ */
