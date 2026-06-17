@@ -4,22 +4,28 @@
 
     <div class="drawer-content flex min-h-screen flex-col bg-[#F5F6FA]">
       <header class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur">
-        <div class="navbar px-4 lg:px-6">
-          <label for="sidebar" class="btn btn-ghost btn-sm mr-2 lg:hidden">
+        <div class="navbar gap-3 px-4 lg:px-6">
+          <label for="sidebar" class="btn btn-ghost btn-sm shrink-0 lg:hidden">
             <Menu :size="18" />
           </label>
 
-          <div class="flex-1">
-            <div class="text-base font-semibold text-slate-900">{{ route.meta.title }}</div>
-            <div class="text-xs text-slate-400">XiaoZhi 猫咪饮水控制系统</div>
+          <div class="min-w-0 flex-1">
+            <div class="truncate text-base font-semibold text-slate-900">{{ pageTitle }}</div>
+            <div class="truncate text-xs text-slate-400">XiaoZhi 猫窝饮水控制系统</div>
           </div>
 
-          <div class="hidden items-center gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-sm text-slate-500 lg:flex">
-            <span
-              class="h-2.5 w-2.5 rounded-full"
-              :class="store.connected ? 'bg-emerald-500' : 'bg-slate-300'"
-            />
-            {{ store.connected ? `设备在线 · ${store.deviceId || '未命名设备'}` : '设备离线' }}
+          <div class="flex shrink-0 items-center gap-2">
+            <div class="lg:hidden">
+              <ModeSwitch compact />
+            </div>
+
+            <div class="hidden items-center gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-sm text-slate-500 lg:flex">
+              <span
+                class="h-2.5 w-2.5 rounded-full"
+                :class="deviceStore.connected ? 'bg-emerald-500' : 'bg-slate-300'"
+              />
+              {{ deviceStore.connected ? `设备在线 · ${deviceStore.deviceId || '未命名设备'}` : '设备离线' }}
+            </div>
           </div>
         </div>
       </header>
@@ -34,13 +40,17 @@
       <aside class="flex min-h-full w-64 flex-col border-r border-slate-200 bg-white">
         <div class="border-b border-slate-200 px-5 py-5">
           <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-white">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-white">
               <Cpu :size="18" />
             </div>
             <div>
               <div class="text-sm font-semibold text-slate-900">XiaoZhi</div>
-              <div class="text-xs text-slate-400">猫咪饮水控制系统</div>
+              <div class="text-xs text-slate-400">猫窝饮水控制系统</div>
             </div>
+          </div>
+
+          <div class="mt-4 hidden lg:block">
+            <ModeSwitch />
           </div>
         </div>
 
@@ -55,7 +65,7 @@
                   : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'"
                 @click="closeSidebar"
               >
-                <component :is="item.icon" :size="18" />
+                <component :is="iconMap[item.icon]" :size="18" />
                 {{ item.label }}
               </RouterLink>
             </li>
@@ -68,9 +78,9 @@
             <div class="mt-2 flex items-center gap-2 text-sm text-slate-500">
               <span
                 class="h-2.5 w-2.5 rounded-full"
-                :class="store.connected ? 'bg-emerald-500' : 'bg-slate-300'"
+                :class="deviceStore.connected ? 'bg-emerald-500' : 'bg-slate-300'"
               />
-              {{ store.connected ? store.state : '离线等待中' }}
+              {{ deviceStore.connected ? deviceStore.state : '离线等待中' }}
             </div>
           </div>
         </div>
@@ -80,35 +90,87 @@
 </template>
 
 <script setup>
-import { useRoute } from 'vue-router'
+import { computed, defineComponent, h } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import {
   Cat,
   Cpu,
   Droplets,
   LayoutDashboard,
   Menu,
-  Mic,
   Settings,
   Sliders,
   Thermometer,
 } from 'lucide-vue-next'
 import { useDeviceStore } from '../stores/deviceStore'
+import { useUiStore } from '../stores/uiStore'
+import {
+  MODE_OPTIONS,
+  getDefaultRouteForMode,
+  getModeMenuItems,
+  getModeRouteTitle,
+  isRouteSupportedByMode,
+} from '../router/modeRouting'
 
 const route = useRoute()
-const store = useDeviceStore()
+const router = useRouter()
+const deviceStore = useDeviceStore()
+const uiStore = useUiStore()
 
-const menuItems = [
-  { to: '/', label: '总览面板', icon: LayoutDashboard },
-  { to: '/sensor', label: '温湿度监控', icon: Thermometer },
-  { to: '/meow', label: '猫叫检测', icon: Cat },
-  { to: '/iot', label: 'IoT 控制', icon: Sliders },
-  { to: '/water', label: '饮水管理', icon: Droplets },
-  { to: '/voice', label: '语音助手', icon: Mic },
-  { to: '/settings', label: '系统设置', icon: Settings },
-].filter((item) => item.to !== '/voice')
+const iconMap = {
+  dashboard: LayoutDashboard,
+  sensor: Thermometer,
+  meow: Cat,
+  iot: Sliders,
+  water: Droplets,
+  settings: Settings,
+}
+
+const menuItems = computed(() => getModeMenuItems(uiStore.mode))
+const pageTitle = computed(() => getModeRouteTitle(route.path, uiStore.mode, route.meta.title))
+
+async function switchMode(nextMode) {
+  if (uiStore.mode === nextMode) return
+  uiStore.setMode(nextMode)
+  if (!isRouteSupportedByMode(route, nextMode)) {
+    await router.replace(getDefaultRouteForMode(nextMode))
+  }
+}
 
 function closeSidebar() {
   const drawer = document.getElementById('sidebar')
   if (drawer) drawer.checked = false
 }
+
+const ModeSwitch = defineComponent({
+  props: {
+    compact: { type: Boolean, default: false },
+  },
+  setup(props) {
+    return () => h(
+      'div',
+      {
+        class: [
+          'grid rounded-lg bg-slate-100 p-1',
+          props.compact ? 'grid-cols-2 gap-1' : 'grid-cols-2 gap-1',
+        ],
+      },
+      MODE_OPTIONS.map((option) => h(
+        'button',
+        {
+          type: 'button',
+          class: [
+            'rounded-md px-2.5 py-1.5 text-xs font-medium transition',
+            props.compact ? 'min-w-12' : 'min-w-20',
+            uiStore.mode === option.value
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-500 hover:text-slate-900',
+          ],
+          onClick: () => switchMode(option.value),
+        },
+        props.compact ? option.label.replace('模式', '') : option.label,
+      )),
+    )
+  },
+})
 </script>
