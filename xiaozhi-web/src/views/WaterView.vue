@@ -1,6 +1,7 @@
 <template>
   <div class="mx-auto max-w-6xl space-y-4">
-    <div class="app-card">
+    <template v-if="uiStore.isControlMode">
+      <div class="app-card">
         <div class="app-card-body space-y-4">
           <div>
             <div class="section-label">手动控泵</div>
@@ -25,16 +26,17 @@
             <button class="btn btn-outline" @click="stopPump">停止</button>
           </div>
 
-          <div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+          <div class="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
             最近一次出水：
             <span class="font-medium text-slate-900">{{ latestRecordSummary }}</span>
           </div>
+
           <div class="border-t border-slate-100 pt-4">
             <div class="flex items-center justify-between gap-4">
               <div>
                 <div class="text-sm font-medium text-slate-900">猫叫联动放水</div>
                 <div class="mt-1 text-xs text-slate-400">
-                  开启后由猫窝主板检测，10 秒内 3 次猫叫即直接通知放水板放水（60 秒内不重复触发）。
+                  开启后由猫窝主板检测，10 秒内 3 次猫叫即通知放水板放水，60 秒内不重复触发。
                 </div>
               </div>
               <input
@@ -63,80 +65,103 @@
         </div>
       </div>
 
-    <div class="grid grid-cols-1 gap-4 xl:grid-cols-[1.2fr_1fr]">
-      <div class="app-card">
-        <div class="app-card-body">
-          <div class="mb-4 flex items-center justify-between">
-            <div>
+      <div class="grid grid-cols-1 gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+        <div class="app-card">
+          <div class="app-card-body">
+            <div class="mb-4">
               <div class="section-label">定时计划</div>
               <div class="mt-1 text-sm text-slate-400">支持新增、编辑、启停与删除</div>
             </div>
-          </div>
 
-          <div class="grid grid-cols-1 gap-3 rounded-2xl bg-slate-50 p-4 md:grid-cols-[1fr_140px_140px_auto]">
-            <input
-              v-model="scheduleForm.label"
-              type="text"
-              class="input input-bordered w-full"
-              placeholder="计划名称"
-            />
-            <input v-model="scheduleForm.time" type="time" class="input input-bordered w-full" />
-            <input
-              v-model.number="scheduleForm.duration_seconds"
-              type="number"
-              min="1"
-              max="120"
-              class="input input-bordered w-full"
-              placeholder="时长"
-            />
-            <button class="btn btn-primary" @click="saveSchedule">
-              {{ scheduleForm.id ? '更新计划' : '新增计划' }}
-            </button>
-          </div>
+            <div class="grid grid-cols-1 gap-3 rounded-xl bg-slate-50 p-4 md:grid-cols-[1fr_140px_140px_auto]">
+              <input
+                v-model="scheduleForm.label"
+                type="text"
+                class="input input-bordered w-full"
+                placeholder="计划名称"
+              />
+              <input v-model="scheduleForm.time" type="time" class="input input-bordered w-full" />
+              <input
+                v-model.number="scheduleForm.duration_seconds"
+                type="number"
+                min="1"
+                max="120"
+                class="input input-bordered w-full"
+                placeholder="时长"
+              />
+              <button class="btn btn-primary" @click="saveSchedule">
+                {{ scheduleForm.id ? '更新计划' : '新增计划' }}
+              </button>
+            </div>
 
-          <div v-if="!schedules.length" class="py-10 text-center text-sm text-slate-400">
-            暂无计划
-          </div>
+            <div v-if="!schedules.length" class="py-10 text-center text-sm text-slate-400">
+              暂无计划
+            </div>
 
-          <div v-else class="mt-4 overflow-x-auto">
-            <table class="table">
-              <thead>
-                <tr class="text-slate-400">
-                  <th>名称</th>
-                  <th>时间</th>
-                  <th>时长</th>
-                  <th>状态</th>
-                  <th class="text-right">操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="schedule in schedules" :key="schedule.id">
-                  <td class="font-medium text-slate-900">{{ schedule.label }}</td>
-                  <td class="text-slate-500">{{ schedule.time }}</td>
-                  <td class="text-slate-500">{{ schedule.duration_seconds }} 秒</td>
-                  <td>
-                    <input
-                      :checked="schedule.enabled"
-                      type="checkbox"
-                      class="toggle toggle-primary toggle-sm"
-                      @change="toggleSchedule(schedule)"
-                    />
-                  </td>
-                  <td>
-                    <div class="flex justify-end gap-2">
-                      <button class="btn btn-ghost btn-sm" @click="editSchedule(schedule)">编辑</button>
-                      <button class="btn btn-ghost btn-sm text-red-500" @click="removeSchedule(schedule.id)">
-                        删除
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <div v-else class="mt-4 overflow-x-auto">
+              <table class="table">
+                <thead>
+                  <tr class="text-slate-400">
+                    <th>名称</th>
+                    <th>时间</th>
+                    <th>时长</th>
+                    <th>状态</th>
+                    <th class="text-right">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="schedule in schedules" :key="schedule.id">
+                    <td class="font-medium text-slate-900">{{ schedule.label }}</td>
+                    <td class="text-slate-500">{{ schedule.time }}</td>
+                    <td class="text-slate-500">{{ schedule.duration_seconds }} 秒</td>
+                    <td>
+                      <input
+                        :checked="schedule.enabled"
+                        type="checkbox"
+                        class="toggle toggle-primary toggle-sm"
+                        @change="toggleSchedule(schedule)"
+                      />
+                    </td>
+                    <td>
+                      <div class="flex justify-end gap-2">
+                        <button class="btn btn-ghost btn-sm" @click="editSchedule(schedule)">编辑</button>
+                        <button class="btn btn-ghost btn-sm text-red-500" @click="removeSchedule(schedule.id)">
+                          删除
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="app-card-body">
+            <div class="section-label">最近记录</div>
+            <div class="mt-3 space-y-3">
+              <div v-if="!records.length" class="py-10 text-center text-sm text-slate-400">暂无出水记录</div>
+              <template v-else>
+                <div
+                  v-for="record in records.slice(0, 5)"
+                  :key="record.id"
+                  class="rounded-xl border border-slate-100 px-3 py-2 text-sm"
+                >
+                  <div class="font-medium text-slate-900">{{ formatDateTime(record.started_at) }}</div>
+                  <div class="mt-1 text-slate-500">
+                    {{ triggerLabelMap[record.trigger_type] || record.trigger_type }} · {{ record.duration_seconds }} 秒 ·
+                    {{ record.volume_ml ?? record.duration_seconds * 3 }} ml
+                  </div>
+                </div>
+              </template>
+            </div>
           </div>
         </div>
       </div>
+    </template>
 
+    <template v-else>
       <div class="app-card">
         <div class="app-card-body">
           <div class="mb-4 flex items-center justify-between gap-3">
@@ -162,50 +187,50 @@
           <div ref="waterChartEl" class="h-72 w-full" />
         </div>
       </div>
-    </div>
 
-    <div class="app-card">
-      <div class="app-card-body">
-        <div class="mb-4 flex items-center justify-between">
-          <div>
-            <div class="section-label">出水记录</div>
-            <div class="mt-1 text-sm text-slate-400">每页 20 条，按时间倒序</div>
+      <div class="app-card">
+        <div class="app-card-body">
+          <div class="mb-4 flex items-center justify-between">
+            <div>
+              <div class="section-label">出水记录</div>
+              <div class="mt-1 text-sm text-slate-400">每页 20 条，按时间倒序</div>
+            </div>
+            <span class="text-sm text-slate-400">共 {{ recordsTotal }} 条</span>
           </div>
-          <span class="text-sm text-slate-400">共 {{ recordsTotal }} 条</span>
-        </div>
 
-        <div v-if="!pagedRecords.length" class="py-10 text-center text-sm text-slate-400">
-          暂无出水记录
-        </div>
+          <div v-if="!pagedRecords.length" class="py-10 text-center text-sm text-slate-400">
+            暂无出水记录
+          </div>
 
-        <div v-else class="overflow-x-auto">
-          <table class="table">
-            <thead>
-              <tr class="text-slate-400">
-                <th>开始时间</th>
-                <th>触发方式</th>
-                <th>时长</th>
-                <th>估算水量</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="record in pagedRecords" :key="record.id">
-                <td class="text-sm text-slate-500">{{ formatDateTime(record.started_at) }}</td>
-                <td class="font-medium text-slate-900">{{ triggerLabelMap[record.trigger_type] || record.trigger_type }}</td>
-                <td class="text-slate-500">{{ record.duration_seconds }} 秒</td>
-                <td class="text-slate-500">{{ record.volume_ml ?? record.duration_seconds * 3 }} ml</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+          <div v-else class="overflow-x-auto">
+            <table class="table">
+              <thead>
+                <tr class="text-slate-400">
+                  <th>开始时间</th>
+                  <th>触发方式</th>
+                  <th>时长</th>
+                  <th>估算水量</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="record in pagedRecords" :key="record.id">
+                  <td class="text-sm text-slate-500">{{ formatDateTime(record.started_at) }}</td>
+                  <td class="font-medium text-slate-900">{{ triggerLabelMap[record.trigger_type] || record.trigger_type }}</td>
+                  <td class="text-slate-500">{{ record.duration_seconds }} 秒</td>
+                  <td class="text-slate-500">{{ record.volume_ml ?? record.duration_seconds * 3 }} ml</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-        <div v-if="recordsPages > 1" class="mt-4 flex items-center justify-end gap-2 text-sm">
-          <button class="btn btn-ghost btn-sm" :disabled="recordsPage <= 1" @click="gotoRecordsPage(recordsPage - 1)">上一页</button>
-          <span class="text-slate-500">第 {{ recordsPage }} / {{ recordsPages }} 页</span>
-          <button class="btn btn-ghost btn-sm" :disabled="recordsPage >= recordsPages" @click="gotoRecordsPage(recordsPage + 1)">下一页</button>
+          <div v-if="recordsPages > 1" class="mt-4 flex items-center justify-end gap-2 text-sm">
+            <button class="btn btn-ghost btn-sm" :disabled="recordsPage <= 1" @click="gotoRecordsPage(recordsPage - 1)">上一页</button>
+            <span class="text-slate-500">第 {{ recordsPage }} / {{ recordsPages }} 页</span>
+            <button class="btn btn-ghost btn-sm" :disabled="recordsPage >= recordsPages" @click="gotoRecordsPage(recordsPage + 1)">下一页</button>
+          </div>
         </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
@@ -216,10 +241,12 @@ import { GridComponent, TooltipComponent } from 'echarts/components'
 import { BarChart } from 'echarts/charts'
 import { SVGRenderer } from 'echarts/renderers'
 import { useApi } from '../composables/useApi'
+import { useUiStore } from '../stores/uiStore'
 
 echarts.use([BarChart, GridComponent, TooltipComponent, SVGRenderer])
 
 const api = useApi()
+const uiStore = useUiStore()
 
 const records = ref([])
 const schedules = ref([])
@@ -260,8 +287,6 @@ function refreshChart() {
     echarts.getInstanceByDom(waterChartEl.value) ??
     echarts.init(waterChartEl.value, null, { renderer: 'svg' })
 
-  const labels = usageSeries.value.map((bucket) => bucket.label)
-  const values = usageSeries.value.map((bucket) => bucket.volume_ml)
   waterChart.setOption({
     animation: false,
     tooltip: {
@@ -274,7 +299,7 @@ function refreshChart() {
     grid: { left: 36, right: 12, top: 16, bottom: 28 },
     xAxis: {
       type: 'category',
-      data: labels,
+      data: usageSeries.value.map((bucket) => bucket.label),
       axisLine: { lineStyle: { color: '#E2E8F0' } },
       axisTick: { show: false },
       axisLabel: { color: '#94A3B8', fontSize: 11 },
@@ -289,7 +314,7 @@ function refreshChart() {
     series: [
       {
         type: 'bar',
-        data: values,
+        data: usageSeries.value.map((bucket) => bucket.volume_ml),
         barWidth: '48%',
         itemStyle: { color: '#3B82F6', borderRadius: [6, 6, 0, 0] },
       },
@@ -321,20 +346,37 @@ function gotoRecordsPage(page) {
   loadRecordsPage(Math.max(1, Math.min(page, recordsPages.value)))
 }
 
-async function load() {
+async function loadViewData() {
+  try {
+    await Promise.all([
+      loadUsage(),
+      loadRecordsPage(),
+    ])
+  } catch (error) {
+    console.error('Failed to load water view data', error)
+  }
+}
+
+async function loadControlData() {
   try {
     const [nextRecords, nextSchedules, nextSettings] = await Promise.all([
       api.getWaterRecords(),
       api.getWaterSchedules(),
       api.getWaterSettings(),
-      loadUsage(),
-      loadRecordsPage(),
     ])
     records.value = nextRecords
     schedules.value = nextSchedules
     waterSettings.value = nextSettings
   } catch (error) {
-    console.error('Failed to load water view data', error)
+    console.error('Failed to load water control data', error)
+  }
+}
+
+async function loadActiveModeData() {
+  if (uiStore.isControlMode) {
+    await loadControlData()
+  } else {
+    await loadViewData()
   }
 }
 
@@ -352,12 +394,12 @@ async function toggleAutoOnMeow(event) {
 
 async function startPump() {
   await api.controlWaterPump({ action: 'start', duration: manualDuration.value, triggerType: 'manual' })
-  await load()
+  await loadControlData()
 }
 
 async function stopPump() {
   await api.controlWaterPump({ action: 'stop' })
-  await load()
+  await loadControlData()
 }
 
 async function saveSchedule() {
@@ -375,7 +417,7 @@ async function saveSchedule() {
   }
 
   resetForm()
-  await load()
+  await loadControlData()
 }
 
 function editSchedule(schedule) {
@@ -390,13 +432,13 @@ function editSchedule(schedule) {
 
 async function toggleSchedule(schedule) {
   await api.updateWaterSchedule(schedule.id, { enabled: !schedule.enabled })
-  await load()
+  await loadControlData()
 }
 
 async function removeSchedule(id) {
   await api.deleteWaterSchedule(id)
   if (scheduleForm.value.id === id) resetForm()
-  await load()
+  await loadControlData()
 }
 
 function resetForm() {
@@ -416,12 +458,27 @@ function formatDateTime(isoString) {
 const onResize = () => waterChart?.resize()
 
 watch(usageSeries, async () => {
-  await nextTick()
-  refreshChart()
+  if (uiStore.isViewMode) {
+    await nextTick()
+    refreshChart()
+  }
 }, { deep: true })
 
+watch(
+  () => uiStore.mode,
+  async () => {
+    if (uiStore.isViewMode) resetForm()
+    await nextTick()
+    await loadActiveModeData()
+    if (uiStore.isViewMode) {
+      await nextTick()
+      refreshChart()
+    }
+  },
+)
+
 onMounted(async () => {
-  await load()
+  await loadActiveModeData()
   window.addEventListener('resize', onResize)
 })
 
