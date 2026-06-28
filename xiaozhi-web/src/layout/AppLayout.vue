@@ -2,16 +2,16 @@
   <div class="drawer lg:drawer-open">
     <input id="sidebar" type="checkbox" class="drawer-toggle" />
 
-    <div class="drawer-content flex min-h-screen flex-col bg-[#F5F6FA]">
-      <header class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur">
-        <div class="navbar gap-3 px-4 lg:px-6">
-          <label for="sidebar" class="btn btn-ghost btn-sm shrink-0 lg:hidden">
+    <div class="drawer-content glass-scrollbar flex min-h-screen flex-col overflow-y-auto bg-transparent">
+      <header class="sticky top-0 z-30 border-b border-white/60 bg-[#fffefa]/72 shadow-sm shadow-emerald-950/5 backdrop-blur-xl">
+        <div class="navbar min-h-[4.25rem] gap-3 px-4 lg:px-7">
+          <label for="sidebar" class="btn btn-ghost btn-sm shrink-0 text-[#52645a] lg:hidden">
             <Menu :size="18" />
           </label>
 
           <div class="min-w-0 flex-1">
-            <div class="truncate text-base font-semibold text-slate-900">{{ pageTitle }}</div>
-            <div class="truncate text-xs text-slate-400">XiaoZhi 猫窝饮水控制系统</div>
+            <div class="truncate text-base font-semibold text-[#17211b]">{{ pageTitle }}</div>
+            <div class="truncate text-xs text-[#789083]">XiaoZhi 智能猫窝</div>
           </div>
 
           <div class="flex shrink-0 items-center gap-2">
@@ -19,10 +19,10 @@
               <ModeSwitch compact />
             </div>
 
-            <div class="hidden items-center gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-sm text-slate-500 lg:flex">
+            <div class="status-chip hidden lg:flex">
               <span
                 class="h-2.5 w-2.5 rounded-full"
-                :class="deviceStore.connected ? 'bg-emerald-500' : 'bg-slate-300'"
+                :class="deviceStore.connected ? 'bg-[#2f8f6b]' : 'bg-[#c4ccc7]'"
               />
               {{ deviceStore.connected ? `设备在线 · ${deviceStore.deviceId || '未命名设备'}` : '设备离线' }}
             </div>
@@ -30,22 +30,22 @@
         </div>
       </header>
 
-      <main class="min-h-screen flex-1 p-4 lg:p-6">
+      <main class="min-h-screen flex-1 px-4 py-5 lg:px-7 lg:py-7">
         <slot />
       </main>
     </div>
 
     <div class="drawer-side z-40">
       <label for="sidebar" class="drawer-overlay" />
-      <aside class="flex min-h-full w-64 flex-col border-r border-slate-200 bg-white">
-        <div class="border-b border-slate-200 px-5 py-5">
+      <aside class="flex min-h-full w-72 flex-col border-r border-white/60 bg-[#fffefa]/78 shadow-2xl shadow-emerald-950/10 backdrop-blur-2xl">
+        <div class="border-b border-white/60 px-5 py-5">
           <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-white">
+            <div class="flex h-11 w-11 items-center justify-center rounded-lg bg-[#17674c] text-white shadow-sm shadow-emerald-900/10">
               <Cpu :size="18" />
             </div>
             <div>
-              <div class="text-sm font-semibold text-slate-900">XiaoZhi</div>
-              <div class="text-xs text-slate-400">猫窝饮水控制系统</div>
+              <div class="text-sm font-semibold text-[#17211b]">XiaoZhi Home</div>
+              <div class="text-xs text-[#789083]">猫窝、饮水与环境状态</div>
             </div>
           </div>
 
@@ -54,15 +54,15 @@
           </div>
         </div>
 
-        <nav class="flex-1 px-3 py-4">
+        <nav class="glass-scrollbar flex-1 overflow-y-auto px-3 py-4">
           <ul class="menu gap-1 p-0">
             <li v-for="item in menuItems" :key="item.to">
               <RouterLink
                 :to="item.to"
-                class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm"
+                class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition"
                 :class="route.path === item.to
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'"
+                  ? 'bg-[#17674c] text-white shadow-sm shadow-emerald-900/10'
+                  : 'text-[#66756d] hover:bg-[#eef6f0] hover:text-[#17211b]'"
                 @click="closeSidebar"
               >
                 <component :is="iconMap[item.icon]" :size="18" />
@@ -72,15 +72,20 @@
           </ul>
         </nav>
 
-        <div class="border-t border-slate-200 px-5 py-4">
-          <div class="rounded-xl bg-slate-50 px-4 py-3">
-            <div class="section-label">设备状态</div>
-            <div class="mt-2 flex items-center gap-2 text-sm text-slate-500">
+        <div class="border-t border-white/60 px-5 py-4">
+          <div class="soft-panel px-4 py-3">
+            <div class="flex items-center justify-between gap-3">
+              <div class="section-label">设备状态</div>
               <span
                 class="h-2.5 w-2.5 rounded-full"
-                :class="deviceStore.connected ? 'bg-emerald-500' : 'bg-slate-300'"
+                :class="deviceStore.connected ? 'bg-[#2f8f6b]' : 'bg-[#c4ccc7]'"
               />
-              {{ deviceStore.connected ? deviceStore.state : '离线等待中' }}
+            </div>
+            <div class="mt-2 text-sm font-medium text-[#17211b]">
+              {{ deviceStore.connected ? '设备在线' : '离线等待中' }}
+            </div>
+            <div class="mt-1 truncate text-xs text-[#789083]">
+              {{ deviceStore.connected ? deviceStore.state : '等待设备重新连接' }}
             </div>
           </div>
         </div>
@@ -151,7 +156,7 @@ const ModeSwitch = defineComponent({
       'div',
       {
         class: [
-          'grid rounded-lg bg-slate-100 p-1',
+          'grid rounded-lg bg-[#eef6f0] p-1',
           props.compact ? 'grid-cols-2 gap-1' : 'grid-cols-2 gap-1',
         ],
       },
@@ -163,8 +168,8 @@ const ModeSwitch = defineComponent({
             'rounded-md px-2.5 py-1.5 text-xs font-medium transition',
             props.compact ? 'min-w-12' : 'min-w-20',
             uiStore.mode === option.value
-              ? 'bg-white text-slate-900 shadow-sm'
-              : 'text-slate-500 hover:text-slate-900',
+              ? 'bg-[#fffefa] text-[#17674c] shadow-sm'
+              : 'text-[#66756d] hover:text-[#17211b]',
           ],
           onClick: () => switchMode(option.value),
         },

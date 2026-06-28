@@ -20,7 +20,7 @@ export const VIEW_MENU_ITEMS = [
 ]
 
 export const CONTROL_MENU_ITEMS = [
-  { to: '/iot', label: 'IoT 控制', icon: 'iot' },
+  { to: '/iot', label: '设备控制', icon: 'iot' },
   { to: '/water', label: '饮水控制', icon: 'water' },
   { to: '/meow', label: '猫叫控制', icon: 'meow' },
   { to: '/settings', label: '系统设置', icon: 'settings' },

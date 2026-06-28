@@ -63,7 +63,7 @@ test('builds mode menus and mode-aware shared route titles', () => {
   assert.deepEqual(
     getModeMenuItems(CONTROL_MODE).map((item) => [item.to, item.label]),
     [
-      ['/iot', 'IoT 控制'],
+      ['/iot', '设备控制'],
       ['/water', '饮水控制'],
       ['/meow', '猫叫控制'],
       ['/settings', '系统设置'],

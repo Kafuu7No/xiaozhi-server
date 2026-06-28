@@ -1,30 +1,31 @@
 <template>
-  <div class="mx-auto max-w-6xl space-y-4">
+  <div class="page-shell">
     <template v-if="uiStore.isControlMode">
       <div class="grid grid-cols-1 gap-4 xl:grid-cols-[1.4fr_1fr]">
         <div class="app-card">
           <div class="app-card-body">
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <div class="section-label">检测控制</div>
-                <div class="mt-2 text-lg font-semibold text-slate-900">猫叫检测开关</div>
-                <div class="mt-1 text-sm text-slate-400">
+                <div class="section-label">猫叫记录开关</div>
+                <div class="mt-2 text-lg font-semibold text-[#17211b]">是否记录猫叫</div>
+                <div class="mt-1 text-sm text-[#789083]">
                   当前状态：
-                  <span :class="detectionEnabled ? 'text-emerald-600' : 'text-slate-500'">
+                  <span :class="detectionEnabled ? 'text-emerald-600' : 'text-[#66756d]'">
                     {{ detectionEnabled ? '运行中' : '已停止' }}
                   </span>
-                  <span v-if="controlStatusText" class="ml-2 text-slate-400">{{ controlStatusText }}</span>
+                  <span v-if="controlStatusText" class="ml-2 text-[#789083]">{{ controlStatusText }}</span>
                 </div>
+                <div class="mt-1 text-sm text-[#789083]">停止后不会记录猫叫，也不会触发猫叫相关联动。</div>
               </div>
 
               <div class="flex flex-wrap gap-2">
                 <button class="btn btn-primary btn-sm" :disabled="detectionEnabled" @click="setDetection(true)">
-                  启动检测
+                  开始记录
                 </button>
                 <button class="btn btn-outline btn-sm" :disabled="!detectionEnabled" @click="setDetection(false)">
-                  停止检测
+                  暂停记录
                 </button>
-                <button v-if="isDev" class="btn btn-ghost btn-sm" @click="injectMock">插入模拟事件</button>
+                <button v-if="isDev" class="btn btn-ghost btn-sm" @click="injectMock">调试：添加模拟记录</button>
               </div>
             </div>
           </div>
@@ -33,8 +34,8 @@
         <div class="app-card">
           <div class="app-card-body">
             <div class="section-label">今日统计</div>
-            <div class="mt-3 text-4xl font-semibold text-slate-900">{{ stats.today_total ?? 0 }}</div>
-            <div class="mt-2 text-sm text-slate-400">
+            <div class="mt-3 text-4xl font-semibold text-[#17211b]">{{ stats.today_total ?? 0 }}</div>
+            <div class="mt-2 text-sm text-[#789083]">
               猫叫 {{ stats.today_cat ?? 0 }} · 噪声 {{ stats.today_noise ?? 0 }}
             </div>
           </div>
@@ -43,7 +44,7 @@
 
       <div
         v-if="controlWarning"
-        class="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-700"
+        class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-700"
       >
         {{ controlWarning }}
       </div>
@@ -53,7 +54,7 @@
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
               <div class="section-label">摄像头照片</div>
-              <div class="mt-1 text-sm text-slate-400">拍照后显示最新上传结果，可删除当前照片。</div>
+              <div class="mt-1 text-sm text-[#789083]">拍照后显示最新上传结果，可删除当前照片。</div>
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
@@ -73,7 +74,7 @@
           <div v-if="captureError" class="text-sm text-rose-500">{{ captureError }}</div>
 
           <div class="grid grid-cols-1 gap-4 xl:grid-cols-[1.5fr_1fr]">
-            <div class="relative aspect-video overflow-hidden rounded-xl bg-slate-950">
+            <div class="relative aspect-video overflow-hidden rounded-lg bg-slate-950">
               <img
                 v-if="latestPhoto"
                 :src="latestPhoto.url"
@@ -88,22 +89,22 @@
               </div>
             </div>
 
-            <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+            <div class="rounded-lg border border-[#dce8de] bg-[#f7fbf7] p-4">
               <div class="section-label">照片信息</div>
               <div class="mt-3 space-y-3 text-sm">
                 <div class="flex items-center justify-between">
-                  <span class="text-slate-400">设备连接</span>
-                  <span :class="cameraDeviceConnected ? 'text-emerald-600' : 'text-slate-500'">
+                  <span class="text-[#789083]">设备连接</span>
+                  <span :class="cameraDeviceConnected ? 'text-emerald-600' : 'text-[#66756d]'">
                     {{ cameraDeviceConnected ? '已连接' : '未连接' }}
                   </span>
                 </div>
                 <div class="flex items-center justify-between">
-                  <span class="text-slate-400">拍摄时间</span>
-                  <span class="text-slate-900">{{ latestPhotoTime }}</span>
+                  <span class="text-[#789083]">拍摄时间</span>
+                  <span class="text-[#17211b]">{{ latestPhotoTime }}</span>
                 </div>
                 <div class="flex items-center justify-between">
-                  <span class="text-slate-400">设备 ID</span>
-                  <span class="text-slate-900">{{ latestPhoto?.device_id || '--' }}</span>
+                  <span class="text-[#789083]">设备 ID</span>
+                  <span class="text-[#17211b]">{{ latestPhoto?.device_id || '--' }}</span>
                 </div>
               </div>
             </div>
@@ -113,25 +114,73 @@
     </template>
 
     <template v-else>
+      <section class="product-panel p-5 lg:p-6">
+        <div class="grid gap-5 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+          <div>
+            <div class="status-chip">
+              <span
+                class="h-2.5 w-2.5 rounded-full"
+                :class="stats.today_cat ? 'bg-[#2f80b7]' : 'bg-[#2f8f6b]'"
+              />
+              声音观察
+            </div>
+            <h1 class="mt-4 text-2xl font-semibold text-[#17211b] lg:text-3xl">{{ meowSummaryTitle }}</h1>
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-[#66756d]">{{ meowSummaryText }}</p>
+          </div>
+          <div class="grid grid-cols-3 gap-3">
+            <div class="soft-panel px-3 py-4">
+              <div class="section-label">总事件</div>
+              <div class="mt-2 text-2xl font-semibold text-[#17211b]">{{ stats.today_total ?? 0 }}</div>
+            </div>
+            <div class="soft-panel px-3 py-4">
+              <div class="section-label">猫叫</div>
+              <div class="mt-2 text-2xl font-semibold text-[#2f80b7]">{{ stats.today_cat ?? 0 }}</div>
+            </div>
+            <div class="soft-panel px-3 py-4">
+              <div class="section-label">噪声</div>
+              <div class="mt-2 text-2xl font-semibold text-[#2f8f6b]">{{ stats.today_noise ?? 0 }}</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div class="grid grid-cols-1 gap-4 xl:grid-cols-[1.7fr_1fr]">
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <div class="app-card">
             <div class="app-card-body">
               <div class="mb-4">
                 <div class="section-label">24 小时频率</div>
-                <div class="mt-1 text-sm text-slate-400">按小时聚合最近 24 小时事件数</div>
+                <div class="mt-1 text-sm text-[#789083]">按小时聚合最近 24 小时事件数</div>
               </div>
-              <div ref="frequencyEl" class="h-72 w-full" />
+              <div class="relative h-72 w-full">
+                <div ref="frequencyEl" class="h-full w-full" />
+                <div
+                  v-if="!chartVisibleEvents.length"
+                  class="absolute inset-0 flex items-center justify-center text-sm text-[#789083]"
+                >
+                  暂无声音频率数据
+                </div>
+              </div>
             </div>
           </div>
 
           <div class="app-card">
             <div class="app-card-body">
               <div class="mb-4">
-                <div class="section-label">置信度分布</div>
-                <div class="mt-1 text-sm text-slate-400">只统计 {{ minConfidenceText }} 及以上事件</div>
+                <div class="section-label">识别把握度</div>
+                <div class="mt-1 text-sm text-[#789083]">
+                  越高越像真实猫叫，只统计 {{ minConfidenceText }} 及以上记录。
+                </div>
               </div>
-              <div ref="confidenceEl" class="h-72 w-full" />
+              <div class="relative h-72 w-full">
+                <div ref="confidenceEl" class="h-full w-full" />
+                <div
+                  v-if="!chartVisibleEvents.length"
+                  class="absolute inset-0 flex items-center justify-center text-sm text-[#789083]"
+                >
+                  暂无识别把握度数据
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -139,8 +188,8 @@
         <div class="app-card">
           <div class="app-card-body">
             <div class="section-label">今日统计</div>
-            <div class="mt-3 text-4xl font-semibold text-slate-900">{{ stats.today_total ?? 0 }}</div>
-            <div class="mt-2 text-sm text-slate-400">
+            <div class="mt-3 text-4xl font-semibold text-[#17211b]">{{ stats.today_total ?? 0 }}</div>
+            <div class="mt-2 text-sm text-[#789083]">
               猫叫 {{ stats.today_cat ?? 0 }} · 噪声 {{ stats.today_noise ?? 0 }}
             </div>
             <div class="mt-4 flex gap-2 text-xs">
@@ -155,11 +204,11 @@
         <div class="app-card-body space-y-4">
           <div>
             <div class="section-label">最新照片</div>
-            <div class="mt-1 text-sm text-slate-400">查看设备最近上传的画面</div>
+            <div class="mt-1 text-sm text-[#789083]">查看设备最近上传的画面</div>
           </div>
 
           <div class="grid grid-cols-1 gap-4 xl:grid-cols-[1.5fr_1fr]">
-            <div class="relative aspect-video overflow-hidden rounded-xl bg-slate-950">
+            <div class="relative aspect-video overflow-hidden rounded-lg bg-slate-950">
               <img
                 v-if="latestPhoto"
                 :src="latestPhoto.url"
@@ -174,22 +223,22 @@
               </div>
             </div>
 
-            <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+            <div class="rounded-lg border border-[#dce8de] bg-[#f7fbf7] p-4">
               <div class="section-label">照片信息</div>
               <div class="mt-3 space-y-3 text-sm">
                 <div class="flex items-center justify-between">
-                  <span class="text-slate-400">设备连接</span>
-                  <span :class="cameraDeviceConnected ? 'text-emerald-600' : 'text-slate-500'">
+                  <span class="text-[#789083]">设备连接</span>
+                  <span :class="cameraDeviceConnected ? 'text-emerald-600' : 'text-[#66756d]'">
                     {{ cameraDeviceConnected ? '已连接' : '未连接' }}
                   </span>
                 </div>
                 <div class="flex items-center justify-between">
-                  <span class="text-slate-400">拍摄时间</span>
-                  <span class="text-slate-900">{{ latestPhotoTime }}</span>
+                  <span class="text-[#789083]">拍摄时间</span>
+                  <span class="text-[#17211b]">{{ latestPhotoTime }}</span>
                 </div>
                 <div class="flex items-center justify-between">
-                  <span class="text-slate-400">设备 ID</span>
-                  <span class="text-slate-900">{{ latestPhoto?.device_id || '--' }}</span>
+                  <span class="text-[#789083]">设备 ID</span>
+                  <span class="text-[#17211b]">{{ latestPhoto?.device_id || '--' }}</span>
                 </div>
               </div>
             </div>
@@ -201,10 +250,10 @@
         <div class="app-card-body space-y-4">
           <div>
             <div class="section-label">历史照片</div>
-            <div class="mt-1 text-sm text-slate-400">共 {{ photosTotal }} 张 · 每页 15 张 · 点击查看大图</div>
+            <div class="mt-1 text-sm text-[#789083]">共 {{ photosTotal }} 张 · 每页 15 张 · 点击查看大图</div>
           </div>
 
-          <div v-if="!photos.length" class="py-10 text-center text-sm text-slate-400">
+          <div v-if="!photos.length" class="py-10 text-center text-sm text-[#789083]">
             暂无历史照片
           </div>
 
@@ -215,8 +264,8 @@
             <div
               v-for="photo in photos"
               :key="photo.id"
-              class="group relative aspect-[4/3] cursor-pointer overflow-hidden rounded-xl border bg-slate-950 shadow-sm transition"
-              :class="latestPhoto && latestPhoto.id === photo.id ? 'border-blue-500 ring-2 ring-blue-400' : 'border-slate-200 hover:border-blue-300 hover:shadow-md'"
+              class="group relative aspect-[4/3] cursor-pointer overflow-hidden rounded-lg border bg-slate-950 shadow-sm transition"
+              :class="latestPhoto && latestPhoto.id === photo.id ? 'border-blue-500 ring-2 ring-blue-400' : 'border-[#dce8de] hover:border-blue-300 hover:shadow-md'"
               @click="selectPhoto(photo)"
             >
               <img :src="photo.url" :alt="photo.filename" class="h-full w-full object-cover" loading="lazy" />
@@ -230,7 +279,7 @@
 
           <div v-if="photosPages > 1" class="flex items-center justify-end gap-2 text-sm">
             <button class="btn btn-ghost btn-sm" :disabled="photosPage <= 1" @click="gotoPhotosPage(photosPage - 1)">上一页</button>
-            <span class="text-slate-500">第 {{ photosPage }} / {{ photosPages }} 页</span>
+            <span class="text-[#66756d]">第 {{ photosPage }} / {{ photosPages }} 页</span>
             <button class="btn btn-ghost btn-sm" :disabled="photosPage >= photosPages" @click="gotoPhotosPage(photosPage + 1)">下一页</button>
           </div>
         </div>
@@ -240,17 +289,19 @@
         <div class="app-card-body">
           <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div class="section-label">事件列表</div>
-              <div class="mt-1 text-sm text-slate-400">云端按阈值重新判定猫叫，低于 {{ minConfidenceText }} 不进入统计</div>
+              <div class="section-label">声音记录</div>
+              <div class="mt-1 text-sm text-[#789083]">
+                识别把握度越高，越像真实猫叫；低于 {{ minConfidenceText }} 的声音不会进入统计。
+              </div>
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
-              <div class="tabs tabs-boxed bg-slate-100 p-1">
+              <div class="tabs tabs-boxed bg-[#eef6f0] p-1">
                 <button
                   v-for="tab in eventTabs"
                   :key="tab.value"
                   class="tab h-8 min-h-8 gap-2 rounded-md px-3 text-xs"
-                  :class="filterType === tab.value ? 'tab-active bg-white text-slate-900 shadow-sm' : 'text-slate-500'"
+                  :class="filterType === tab.value ? 'tab-active bg-[#fffefa] text-[#17211b] shadow-sm' : 'text-[#66756d]'"
                   @click="filterType = tab.value"
                 >
                   {{ tab.label }}
@@ -267,32 +318,32 @@
             </div>
           </div>
 
-          <div v-if="!filteredEvents.length" class="py-12 text-center text-sm text-slate-400">
+          <div v-if="!filteredEvents.length" class="py-12 text-center text-sm text-[#789083]">
             暂无检测事件
           </div>
 
-          <div v-else class="max-h-[28rem] overflow-auto rounded-xl border border-slate-100">
+          <div v-else class="max-h-[28rem] overflow-auto rounded-lg border border-[#dce8de]">
             <table class="table">
-              <thead class="sticky top-0 z-10 bg-white">
-                <tr class="text-slate-400">
+              <thead class="sticky top-0 z-10 bg-[#fffefa]">
+                <tr class="text-[#789083]">
                   <th>时间</th>
-                  <th>score</th>
-                  <th>判定</th>
+                  <th>识别把握度</th>
+                  <th>识别结果</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="event in filteredEvents" :key="event.id ?? event.ts ?? event.recorded_at">
-                  <td class="text-sm text-slate-500">{{ formatEventTime(event) }}</td>
+                  <td class="text-sm text-[#66756d]">{{ formatEventTime(event) }}</td>
                   <td>
                     <div class="flex items-center gap-3">
-                      <div class="h-2 w-28 overflow-hidden rounded-full bg-slate-100">
+                      <div class="h-2 w-28 overflow-hidden rounded-full bg-[#eef6f0]">
                         <div
                           class="h-full rounded-full"
-                          :class="event.is_cat ? 'bg-[#3B82F6]' : 'bg-[#10B981]'"
+                          :class="event.is_cat ? 'bg-[#2f80b7]' : 'bg-[#2f8f6b]'"
                           :style="{ width: `${Math.min(100, event.score * 100)}%` }"
                         />
                       </div>
-                      <span class="text-sm text-slate-500">{{ (event.score * 100).toFixed(0) }}%</span>
+                      <span class="text-sm text-[#66756d]">{{ (event.score * 100).toFixed(0) }}%</span>
                     </div>
                   </td>
                   <td>
@@ -316,13 +367,13 @@
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
       @click.self="cancelDelete"
     >
-      <div class="w-full max-w-sm overflow-hidden rounded-xl bg-white shadow-xl">
+      <div class="w-full max-w-sm overflow-hidden rounded-lg bg-[#fffefa] shadow-xl">
         <div class="aspect-[4/3] w-full bg-slate-950">
           <img :src="pendingDeletePhoto.url" :alt="pendingDeletePhoto.filename" class="h-full w-full object-contain" />
         </div>
         <div class="space-y-3 p-5">
-          <div class="text-base font-semibold text-slate-900">删除这张照片？</div>
-          <div class="text-sm text-slate-500">
+          <div class="text-base font-semibold text-[#17211b]">删除这张照片？</div>
+          <div class="text-sm text-[#66756d]">
             拍摄于 {{ pendingDeletePhoto.captured_at?.replace('T', ' ').slice(0, 19) }}，删除后不可恢复。
           </div>
           <div class="flex justify-end gap-2 pt-1">
@@ -402,6 +453,15 @@ const latestPhotoTime = computed(() => {
   if (!latestPhoto.value?.captured_at) return '--'
   return latestPhoto.value.captured_at.replace('T', ' ').slice(0, 19)
 })
+const meowSummaryTitle = computed(() => {
+  if (!stats.value.today_total) return '今天暂时很安静'
+  if ((stats.value.today_cat ?? 0) > (stats.value.today_noise ?? 0)) return '今天猫叫活动比较明显'
+  return '今天主要是环境噪声'
+})
+const meowSummaryText = computed(() => {
+  if (!stats.value.today_total) return '还没有记录到有效声音事件，摄像头照片和历史事件会在设备上报后更新。'
+  return `今天记录 ${stats.value.today_total ?? 0} 次事件，其中猫叫 ${stats.value.today_cat ?? 0} 次，噪声 ${stats.value.today_noise ?? 0} 次。`
+})
 const minConfidence = computed(() => stats.value.min_confidence ?? 0.4)
 const minConfidenceText = computed(() => `${(minConfidence.value * 100).toFixed(0)}%`)
 const visibleEvents = computed(() => events.value.filter((event) => Number(event.score) >= minConfidence.value))
@@ -416,7 +476,6 @@ const eventTabs = computed(() => [
   { value: 'noise', label: '噪声', count: visibleEvents.value.filter((event) => !event.is_cat).length },
 ])
 const chartVisibleEvents = computed(() => chartEvents.value.filter((event) => Number(event.score) >= minConfidence.value))
-const minConfidenceBucketLabel = computed(() => `${Math.round(minConfidence.value * 100)}-60%`)
 
 watch(
   () => store.recentMeowEvents,
@@ -526,15 +585,13 @@ function buildHourlySeries() {
 
 function buildConfidenceSeries() {
   const buckets = [
-    { label: minConfidenceBucketLabel.value, count: 0, min: minConfidence.value, max: 0.6 },
-    { label: '60-70%', count: 0, min: 0.6, max: 0.7 },
-    { label: '70-80%', count: 0, min: 0.7, max: 0.8 },
-    { label: '80-90%', count: 0, min: 0.8, max: 0.9 },
-    { label: '90-100%', count: 0, min: 0.9, max: 1.01 },
+    { label: '可能是猫叫', count: 0, min: minConfidence.value, max: 0.7 },
+    { label: '比较像猫叫', count: 0, min: Math.max(minConfidence.value, 0.7), max: 0.9 },
+    { label: '很像猫叫', count: 0, min: Math.max(minConfidence.value, 0.9), max: 1.01 },
   ]
 
   for (const event of chartVisibleEvents.value) {
-    const target = buckets.find((bucket) => event.score >= bucket.min && event.score < bucket.max)
+    const target = buckets.find((bucket) => bucket.min < bucket.max && event.score >= bucket.min && event.score < bucket.max)
     if (target) target.count += 1
   }
 
@@ -549,26 +606,26 @@ function buildChartOption({ labels, values }, color) {
     animation: false,
     tooltip: {
       trigger: 'axis',
-      backgroundColor: '#ffffff',
-      borderColor: '#E2E8F0',
+      backgroundColor: '#fffefa',
+      borderColor: '#dce8de',
       borderWidth: 1,
-      textStyle: { color: '#334155', fontSize: 12 },
+      textStyle: { color: '#17211b', fontSize: 12 },
     },
     grid: { left: 36, right: 16, top: 16, bottom: 28 },
     xAxis: {
       type: 'category',
       data: labels,
-      axisLine: { lineStyle: { color: '#E2E8F0' } },
+      axisLine: { lineStyle: { color: '#dce8de' } },
       axisTick: { show: false },
-      axisLabel: { color: '#94A3B8', fontSize: 11 },
+      axisLabel: { color: '#789083', fontSize: 11 },
     },
     yAxis: {
       type: 'value',
       minInterval: 1,
       axisLine: { show: false },
       axisTick: { show: false },
-      axisLabel: { color: '#94A3B8', fontSize: 11 },
-      splitLine: { lineStyle: { color: '#E2E8F0', type: 'dashed' } },
+      axisLabel: { color: '#789083', fontSize: 11 },
+      splitLine: { lineStyle: { color: '#dce8de', type: 'dashed' } },
     },
     series: [
       {
@@ -598,8 +655,8 @@ function ensureCharts() {
 function refreshCharts() {
   if (!uiStore.isViewMode) return
   ensureCharts()
-  frequencyChart?.setOption(buildChartOption(buildHourlySeries(), '#3B82F6'), { notMerge: true })
-  confidenceChart?.setOption(buildChartOption(buildConfidenceSeries(), '#10B981'), { notMerge: true })
+  frequencyChart?.setOption(buildChartOption(buildHourlySeries(), '#2f80b7'), { notMerge: true })
+  confidenceChart?.setOption(buildChartOption(buildConfidenceSeries(), '#2f8f6b'), { notMerge: true })
 }
 
 async function loadViewData() {

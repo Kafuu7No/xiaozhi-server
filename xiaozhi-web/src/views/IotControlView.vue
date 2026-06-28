@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-6xl space-y-4">
+  <div class="page-shell">
     <div
       v-if="store.connected"
       class="online-banner"
@@ -11,6 +11,16 @@
       <WifiOff :size="16" class="shrink-0" />
       <span>设备离线，控制指令暂时不会下发。</span>
     </div>
+
+    <section class="product-panel p-5 lg:p-6">
+      <div class="max-w-2xl">
+        <div class="section-label">设备控制</div>
+        <h1 class="mt-3 text-2xl font-semibold text-[#17211b] lg:text-3xl">调节猫窝设备的声音、屏幕和灯光</h1>
+        <p class="mt-2 text-sm leading-6 text-[#66756d]">
+          这里的设置会直接发送到已连接设备；设备离线时可以查看状态，但不会执行控制指令。
+        </p>
+      </div>
+    </section>
 
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <IotDeviceCard
@@ -27,11 +37,11 @@
         <div class="mb-4 flex items-center justify-between">
           <div>
             <div class="section-label">最近对话</div>
-            <div class="mt-1 text-sm text-slate-400">最近 20 条语音对话记录</div>
+            <div class="mt-1 text-sm text-[#789083]">最近 20 条语音对话记录</div>
           </div>
         </div>
 
-        <div v-if="!store.conversations.length" class="py-10 text-center text-sm text-slate-400">
+        <div v-if="!store.conversations.length" class="py-10 text-center text-sm text-[#789083]">
           暂无对话记录
         </div>
 
@@ -48,7 +58,7 @@
               {{ message.role === 'user' ? '用户' : 'AI' }}
             </span>
             <span class="flex-1 text-sm leading-6 text-slate-700">{{ message.content }}</span>
-            <span class="shrink-0 text-xs text-slate-400">{{ fmtTime(message.recorded_at) }}</span>
+            <span class="shrink-0 text-xs text-[#789083]">{{ fmtTime(message.recorded_at) }}</span>
           </div>
         </div>
       </div>

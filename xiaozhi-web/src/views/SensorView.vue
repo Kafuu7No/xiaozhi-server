@@ -1,18 +1,49 @@
 <template>
-  <div class="mx-auto max-w-6xl space-y-4">
+  <div class="page-shell">
+    <section class="product-panel p-5 lg:p-6">
+      <div class="grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+        <div>
+          <div class="status-chip">
+            <span
+              class="h-2.5 w-2.5 rounded-full"
+              :class="hasAlert ? 'bg-[#d76f45]' : 'bg-[#2f8f6b]'"
+            />
+            {{ comfortBadge }}
+          </div>
+          <h1 class="mt-4 text-2xl font-semibold text-[#17211b] lg:text-3xl">{{ comfortTitle }}</h1>
+          <p class="mt-2 max-w-2xl text-sm leading-6 text-[#66756d]">{{ comfortText }}</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="soft-panel px-4 py-4">
+            <div class="section-label">温度</div>
+            <div class="mt-2 text-2xl font-semibold text-[#2f80b7]">
+              {{ currentSensor?.temp_c ?? '--' }}<span class="text-sm text-[#789083]">°C</span>
+            </div>
+          </div>
+          <div class="soft-panel px-4 py-4">
+            <div class="section-label">湿度</div>
+            <div class="mt-2 text-2xl font-semibold text-[#2f8f6b]">
+              {{ currentSensor?.humi_rh ?? '--' }}<span class="text-sm text-[#789083]">%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <div
       v-if="hasAlert"
-      class="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600"
+      class="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600"
     >
-      当前环境已超出阈值：
+      当前环境超过了提醒线：
       <span>{{ alertMessages.join('；') }}</span>
     </div>
 
     <div
       v-if="isCurrentFallback"
-      class="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-700"
+      class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-700"
     >
-      当前温湿度来自板端诊断回退，云端通信已经打通，但板端没有检测到 AHT20 真实传感器。
+      当前显示的是临时诊断数据：设备已连上云端，但真实温湿度传感器暂时没有读到。
       <span v-if="currentSensor?.sensor_error">错误：{{ currentSensor.sensor_error }}</span>
     </div>
 
@@ -21,10 +52,10 @@
         <div class="app-card-body">
           <div class="section-label">当前温度</div>
           <div class="mt-3 flex items-end gap-2">
-            <span class="metric-value text-[#3B82F6]">{{ currentSensor?.temp_c ?? '--' }}</span>
-            <span class="pb-1 text-lg text-slate-400">°C</span>
+            <span class="metric-value text-[#2f80b7]">{{ currentSensor?.temp_c ?? '--' }}</span>
+            <span class="pb-1 text-lg text-[#789083]">°C</span>
           </div>
-          <div class="mt-3 text-sm text-slate-400">
+          <div class="mt-3 text-sm text-[#789083]">
             {{ currentSensor ? `采样时间 ${formatSensorTime(currentSensor)}` : '等待设备数据' }}
           </div>
           <div class="mt-2">
@@ -39,21 +70,21 @@
         <div class="app-card-body">
           <div class="section-label">当前湿度</div>
           <div class="mt-3 flex items-end gap-2">
-            <span class="metric-value text-[#10B981]">{{ currentSensor?.humi_rh ?? '--' }}</span>
-            <span class="pb-1 text-lg text-slate-400">%</span>
+            <span class="metric-value text-[#2f8f6b]">{{ currentSensor?.humi_rh ?? '--' }}</span>
+            <span class="pb-1 text-lg text-[#789083]">%</span>
           </div>
-          <div class="mt-3 text-sm text-slate-400">高阈值 {{ thresholds.humi_max }}%</div>
+          <div class="mt-3 text-sm text-[#789083]">偏高提醒线 {{ thresholds.humi_max }}%</div>
         </div>
       </div>
 
       <div class="app-card">
         <div class="app-card-body">
           <div class="section-label">24 小时温度</div>
-          <div class="mt-3 text-2xl font-semibold text-slate-900">
+          <div class="mt-3 text-2xl font-semibold text-[#17211b]">
             {{ stats.temp_c.max ?? '--' }}
-            <span class="text-base font-normal text-slate-400">最高</span>
+            <span class="text-base font-normal text-[#789083]">最高</span>
           </div>
-          <div class="mt-2 text-sm text-slate-400">
+          <div class="mt-2 text-sm text-[#789083]">
             最低 {{ stats.temp_c.min ?? '--' }}°C · 平均 {{ stats.temp_c.avg ?? '--' }}°C
           </div>
         </div>
@@ -62,11 +93,11 @@
       <div class="app-card">
         <div class="app-card-body">
           <div class="section-label">24 小时湿度</div>
-          <div class="mt-3 text-2xl font-semibold text-slate-900">
+          <div class="mt-3 text-2xl font-semibold text-[#17211b]">
             {{ stats.humi_rh.max ?? '--' }}
-            <span class="text-base font-normal text-slate-400">最高</span>
+            <span class="text-base font-normal text-[#789083]">最高</span>
           </div>
-          <div class="mt-2 text-sm text-slate-400">
+          <div class="mt-2 text-sm text-[#789083]">
             最低 {{ stats.humi_rh.min ?? '--' }}% · 平均 {{ stats.humi_rh.avg ?? '--' }}%
           </div>
         </div>
@@ -78,7 +109,7 @@
         <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <div class="section-label">24 小时趋势</div>
-            <div class="mt-1 text-sm text-slate-400">已对齐真实字段 temp_c / humi_rh / ts</div>
+            <div class="mt-1 text-sm text-[#789083]">最近 24 小时温湿度变化</div>
           </div>
           <div class="flex items-center gap-2">
             <button class="btn btn-ghost btn-sm" @click="load">刷新</button>
@@ -92,32 +123,32 @@
       <div class="app-card-body">
         <div class="mb-4 flex items-center justify-between">
           <div>
-            <div class="section-label">原始数据</div>
-            <div class="mt-1 text-sm text-slate-400">每页 20 条，按落库时间倒序</div>
+            <div class="section-label">详细记录</div>
+            <div class="mt-1 text-sm text-[#789083]">每页 20 条，按记录时间倒序，方便查看历史变化</div>
           </div>
-          <span class="text-sm text-slate-400">共 {{ recordsTotal }} 条</span>
+          <span class="text-sm text-[#789083]">共 {{ recordsTotal }} 条</span>
         </div>
 
-        <div v-if="!pagedRows.length" class="py-12 text-center text-sm text-slate-400">
+        <div v-if="!pagedRows.length" class="py-12 text-center text-sm text-[#789083]">
           暂无环境数据
         </div>
 
         <div v-else class="overflow-x-auto">
           <table class="table">
             <thead>
-              <tr class="text-slate-400">
+              <tr class="text-[#789083]">
                 <th>时间</th>
-                <th>temp_c</th>
-                <th>humi_rh</th>
+                <th>温度</th>
+                <th>湿度</th>
                 <th>来源</th>
                 <th>状态</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="row in pagedRows" :key="row.id ?? row.ts ?? row.recorded_at">
-                <td class="text-sm text-slate-500">{{ formatSensorTime(row) }}</td>
-                <td class="font-medium text-slate-900">{{ row.temp_c }}°C</td>
-                <td class="font-medium text-slate-900">{{ row.humi_rh }}%</td>
+                <td class="text-sm text-[#66756d]">{{ formatSensorTime(row) }}</td>
+                <td class="font-medium text-[#17211b]">{{ row.temp_c }}°C</td>
+                <td class="font-medium text-[#17211b]">{{ row.humi_rh }}%</td>
                 <td>
                   <span
                     class="badge badge-sm border-0"
@@ -130,7 +161,7 @@
                 <td>
                   <span
                     class="badge badge-sm border-0"
-                    :class="row.has_alert ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'"
+                    :class="row.has_alert ? 'bg-red-100 text-red-600' : 'bg-[#eef6f0] text-[#66756d]'"
                   >
                     {{ row.has_alert ? '告警' : '正常' }}
                   </span>
@@ -142,7 +173,7 @@
 
         <div v-if="recordsPages > 1" class="mt-4 flex items-center justify-end gap-2 text-sm">
           <button class="btn btn-ghost btn-sm" :disabled="recordsPage <= 1" @click="gotoRecordsPage(recordsPage - 1)">上一页</button>
-          <span class="text-slate-500">第 {{ recordsPage }} / {{ recordsPages }} 页</span>
+          <span class="text-[#66756d]">第 {{ recordsPage }} / {{ recordsPages }} 页</span>
           <button class="btn btn-ghost btn-sm" :disabled="recordsPage >= recordsPages" @click="gotoRecordsPage(recordsPage + 1)">下一页</button>
         </div>
       </div>
@@ -194,6 +225,24 @@ const alertMessages = computed(() => {
   return messages
 })
 const isCurrentFallback = computed(() => isSensorFallback(currentSensor.value))
+const comfortBadge = computed(() => {
+  if (!currentSensor.value) return '等待数据'
+  if (hasAlert.value) return '需要关注'
+  if (isCurrentFallback.value) return '临时诊断数据'
+  return '环境稳定'
+})
+const comfortTitle = computed(() => {
+  if (!currentSensor.value) return '正在等待猫窝环境数据'
+  if (hasAlert.value) return '猫窝环境需要留意一下'
+  if (isCurrentFallback.value) return '设备已连通，传感器仍需确认'
+  return '猫窝环境舒适稳定'
+})
+const comfortText = computed(() => {
+  if (!currentSensor.value) return '设备上报第一条温湿度后，这里会显示当前舒适度和最近趋势。'
+  if (hasAlert.value) return alertMessages.value.join('；')
+  if (isCurrentFallback.value) return '当前为临时诊断数据，可以确认设备已连通，但真实传感器读数还未恢复。'
+  return `最近一次采样 ${formatSensorTime(currentSensor.value)}，温度和湿度都处在可观察范围内。`
+})
 
 watch(
   () => store.latestSensor,
@@ -265,16 +314,16 @@ function isSensorFallback(sample) {
 
 function sensorSourceText(sample) {
   if (!sample) return '等待数据'
-  if (isSensorFallback(sample)) return '诊断回退'
+  if (isSensorFallback(sample)) return '临时诊断数据'
   if (sample.source === 'mock') return '模拟数据'
   if (sample.sensor_ok === true || sample.source === 'env') return '真实上报'
   return '设备上报'
 }
 
 function sensorSourceClass(sample) {
-  if (!sample) return 'bg-slate-100 text-slate-500'
+  if (!sample) return 'bg-[#eef6f0] text-[#66756d]'
   if (isSensorFallback(sample)) return 'bg-amber-100 text-amber-700'
-  if (sample.source === 'mock') return 'bg-slate-100 text-slate-500'
+  if (sample.source === 'mock') return 'bg-[#eef6f0] text-[#66756d]'
   return 'bg-emerald-100 text-emerald-700'
 }
 
