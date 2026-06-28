@@ -25,10 +25,10 @@ const props = defineProps({
 })
 
 const colors = {
-  temp: '#3B82F6',
-  humi: '#10B981',
-  grid: '#E2E8F0',
-  text: '#94A3B8',
+  temp: '#2f80b7',
+  humi: '#2f8f6b',
+  grid: '#dce8de',
+  text: '#789083',
 }
 
 const chartEl = ref(null)
@@ -49,10 +49,10 @@ function buildOption(rows) {
     animation: false,
     tooltip: {
       trigger: 'axis',
-      backgroundColor: '#ffffff',
+      backgroundColor: '#fffefa',
       borderColor: colors.grid,
       borderWidth: 1,
-      textStyle: { color: '#334155', fontSize: 12 },
+      textStyle: { color: '#17211b', fontSize: 12 },
     },
     legend: {
       top: 0,
@@ -98,7 +98,7 @@ function buildOption(rows) {
         data: rows.map((row) => row.temp_c),
         lineStyle: { color: colors.temp, width: 2.5 },
         itemStyle: { color: colors.temp },
-        areaStyle: { color: 'rgba(59,130,246,0.08)' },
+        areaStyle: { color: 'rgba(47,128,183,0.10)' },
       },
       {
         name: '湿度 %',
@@ -109,7 +109,7 @@ function buildOption(rows) {
         data: rows.map((row) => row.humi_rh),
         lineStyle: { color: colors.humi, width: 2.5 },
         itemStyle: { color: colors.humi },
-        areaStyle: { color: 'rgba(16,185,129,0.08)' },
+        areaStyle: { color: 'rgba(47,143,107,0.10)' },
       },
     ],
   }

@@ -21,7 +21,7 @@ const links = [
   { to: '/', label: '主控台' },
   { to: '/sensor', label: '温湿度' },
   { to: '/meow', label: '猫叫检测' },
-  { to: '/iot', label: 'IoT 控制' },
+  { to: '/iot', label: '设备控制' },
   { to: '/water', label: '饮水管理' },
   { to: '/voice', label: '语音助手' },
   { to: '/settings', label: '设置' },

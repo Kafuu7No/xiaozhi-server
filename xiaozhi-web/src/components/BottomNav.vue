@@ -18,7 +18,7 @@ const links = [
   { to: '/', label: '主控台', icon: '⌂' },
   { to: '/sensor', label: '温湿度', icon: '℃' },
   { to: '/meow', label: '猫叫', icon: '猫' },
-  { to: '/iot', label: 'IoT', icon: '▣' },
+  { to: '/iot', label: '设备', icon: '▣' },
   { to: '/water', label: '饮水', icon: '水' },
   { to: '/voice', label: '语音', icon: '🎤' },
 ].filter((link) => link.to !== '/voice')

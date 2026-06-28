@@ -92,22 +92,23 @@ async def save_event(
     device_id: str,
     score: float,
     is_cat: bool,
+    min_confidence: float = MIN_CONFIDENCE,
     ts: int | None = None,
     recorded_at: datetime | None = None,
     source: str = "device",
 ) -> dict[str, Any]:
-    if score < MIN_CONFIDENCE:
+    if score < min_confidence:
         logger.debug(
             "Meow event dropped from %s: device=%s score=%.3f below minimum %.2f",
             source,
             device_id,
             score,
-            MIN_CONFIDENCE,
+            min_confidence,
         )
         return {
             "status": "dropped",
             "reason": "below_min_confidence",
-            "min_confidence": MIN_CONFIDENCE,
+            "min_confidence": min_confidence,
             "score": float(score),
             "is_cat": bool(is_cat),
         }
@@ -124,7 +125,7 @@ async def save_event(
 
     payload = serialize_event(event, device_ts=ts)
     payload["source"] = source
-    payload["min_confidence"] = MIN_CONFIDENCE
+    payload["min_confidence"] = min_confidence
     await broadcast("meow_event", payload)
 
     logger.info(
@@ -142,12 +143,13 @@ async def get_events(
     *,
     hours: int,
     is_cat: bool | None = None,
+    min_confidence: float = MIN_CONFIDENCE,
 ) -> list[dict[str, Any]]:
     lower_bound = datetime.now() - timedelta(hours=hours)
     stmt = (
         select(MeowEvent)
         .where(MeowEvent.recorded_at >= lower_bound)
-        .where(MeowEvent.confidence >= MIN_CONFIDENCE)
+        .where(MeowEvent.confidence >= min_confidence)
         .order_by(MeowEvent.recorded_at.desc())
     )
     if is_cat is not None:
@@ -156,7 +158,7 @@ async def get_events(
     return [serialize_event(row) for row in result.scalars().all()]
 
 
-async def get_stats(db: AsyncSession) -> dict[str, Any]:
+async def get_stats(db: AsyncSession, min_confidence: float = MIN_CONFIDENCE) -> dict[str, Any]:
     now = datetime.now()
     start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
@@ -165,7 +167,7 @@ async def get_stats(db: AsyncSession) -> dict[str, Any]:
             select(func.count())
             .select_from(MeowEvent)
             .where(MeowEvent.recorded_at >= start_of_day)
-            .where(MeowEvent.confidence >= MIN_CONFIDENCE)
+            .where(MeowEvent.confidence >= min_confidence)
         )
         if is_cat is not None:
             stmt = stmt.where(MeowEvent.is_cat == is_cat)
@@ -179,5 +181,5 @@ async def get_stats(db: AsyncSession) -> dict[str, Any]:
         "today_total": today_total,
         "today_cat": today_cat,
         "today_noise": today_noise,
-        "min_confidence": MIN_CONFIDENCE,
+        "min_confidence": min_confidence,
     }

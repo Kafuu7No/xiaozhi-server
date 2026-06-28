@@ -4,8 +4,10 @@ single row and exposed to the dashboard."""
 from __future__ import annotations
 
 import logging
+import math
 from typing import Any
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.database import AppSetting
@@ -13,9 +15,18 @@ from .meow_service import MIN_CONFIDENCE
 
 logger = logging.getLogger("xz.settings")
 
+MEOW_MIN_CONFIDENCE_MIN = 0.1
+MEOW_MIN_CONFIDENCE_MAX = 0.95
+
+
+class SettingsValidationError(ValueError):
+    """Raised when a settings update contains an out-of-range value."""
+
+
 # Maps API (camelCase) keys to AppSetting column names.
 _FIELD_MAP = {
     "meowThreshold": "meow_threshold",
+    "meowMinConfidence": "meow_min_confidence",
     "tempMax": "temp_max",
     "humidMin": "humid_min",
     "humidMax": "humid_max",
@@ -28,7 +39,7 @@ def serialize_settings(setting: AppSetting) -> dict[str, Any]:
     """Serialize a settings row using the camelCase keys the frontend expects."""
     return {
         "meowThreshold": setting.meow_threshold,
-        "meowMinConfidence": MIN_CONFIDENCE,
+        "meowMinConfidence": setting.meow_min_confidence,
         "tempMax": setting.temp_max,
         "humidMin": setting.humid_min,
         "humidMax": setting.humid_max,
@@ -47,6 +58,26 @@ def to_db_fields(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def validate_settings_payload(payload: dict[str, Any]) -> None:
+    """Validate settings values that affect runtime filtering."""
+    min_confidence = payload.get("meowMinConfidence")
+    if min_confidence is None:
+        return
+    try:
+        value = float(min_confidence)
+    except (TypeError, ValueError) as exc:
+        raise SettingsValidationError("meowMinConfidence must be a number") from exc
+    if (
+        not math.isfinite(value)
+        or value < MEOW_MIN_CONFIDENCE_MIN
+        or value > MEOW_MIN_CONFIDENCE_MAX
+    ):
+        raise SettingsValidationError(
+            "meowMinConfidence must be between "
+            f"{MEOW_MIN_CONFIDENCE_MIN} and {MEOW_MIN_CONFIDENCE_MAX}"
+        )
+
+
 # --- persistence ---------------------------------------------------------
 
 
@@ -56,8 +87,15 @@ async def get_or_create(db: AsyncSession) -> AppSetting:
     if setting is None:
         setting = AppSetting(id=1)
         db.add(setting)
-        await db.commit()
-        await db.refresh(setting)
+        try:
+            await db.commit()
+        except IntegrityError:
+            await db.rollback()
+            setting = await db.get(AppSetting, 1)
+            if setting is None:
+                raise
+        else:
+            await db.refresh(setting)
     return setting
 
 
@@ -81,8 +119,14 @@ async def get_meow_threshold(db: AsyncSession) -> float:
     return (await get_or_create(db)).meow_threshold
 
 
+async def get_meow_min_confidence(db: AsyncSession) -> float:
+    """Return the minimum score required to save and count a meow event."""
+    return (await get_or_create(db)).meow_min_confidence
+
+
 async def save_settings(db: AsyncSession, payload: dict[str, Any]) -> dict[str, Any]:
     """Apply a partial (camelCase) update and return the stored settings."""
+    validate_settings_payload(payload)
     setting = await get_or_create(db)
     for column, value in to_db_fields(payload).items():
         setattr(setting, column, value)

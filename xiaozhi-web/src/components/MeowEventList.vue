@@ -5,8 +5,8 @@
         <thead>
           <tr>
             <th>时间</th>
-            <th>score</th>
-            <th>判定</th>
+            <th>识别把握度</th>
+            <th>识别结果</th>
           </tr>
         </thead>
         <tbody>

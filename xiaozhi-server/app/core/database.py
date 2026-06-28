@@ -27,17 +27,27 @@ def _migrate_sqlite_schema(sync_conn):
         return
 
     inspector = inspect(sync_conn)
-    if "sensor_records" not in inspector.get_table_names():
+    table_names = inspector.get_table_names()
+    if "sensor_records" in table_names:
+        sensor_existing = {column["name"] for column in inspector.get_columns("sensor_records")}
+        sensor_migrations = {
+            "source": "ALTER TABLE sensor_records ADD COLUMN source VARCHAR(20) DEFAULT 'device'",
+            "sensor_ok": "ALTER TABLE sensor_records ADD COLUMN sensor_ok BOOLEAN",
+            "sensor_error": "ALTER TABLE sensor_records ADD COLUMN sensor_error VARCHAR(80)",
+        }
+        for column, statement in sensor_migrations.items():
+            if column not in sensor_existing:
+                sync_conn.execute(text(statement))
+
+    if "app_settings" not in table_names:
         return
 
-    existing = {column["name"] for column in inspector.get_columns("sensor_records")}
-    migrations = {
-        "source": "ALTER TABLE sensor_records ADD COLUMN source VARCHAR(20) DEFAULT 'device'",
-        "sensor_ok": "ALTER TABLE sensor_records ADD COLUMN sensor_ok BOOLEAN",
-        "sensor_error": "ALTER TABLE sensor_records ADD COLUMN sensor_error VARCHAR(80)",
+    settings_existing = {column["name"] for column in inspector.get_columns("app_settings")}
+    settings_migrations = {
+        "meow_min_confidence": "ALTER TABLE app_settings ADD COLUMN meow_min_confidence FLOAT DEFAULT 0.4",
     }
-    for column, statement in migrations.items():
-        if column not in existing:
+    for column, statement in settings_migrations.items():
+        if column not in settings_existing:
             sync_conn.execute(text(statement))
 
 

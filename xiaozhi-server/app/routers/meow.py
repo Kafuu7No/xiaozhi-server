@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.database import get_db
-from ..services import meow_service
+from ..services import meow_service, settings_service
 from ..services.session_manager import session_manager
 
 router = APIRouter()
@@ -64,12 +64,19 @@ async def get_meow_events(
     is_cat: bool | None = None,
     db: AsyncSession = Depends(get_db),
 ) -> list[dict]:
-    return await meow_service.get_events(db, hours=hours, is_cat=is_cat)
+    min_confidence = await settings_service.get_meow_min_confidence(db)
+    return await meow_service.get_events(
+        db,
+        hours=hours,
+        is_cat=is_cat,
+        min_confidence=min_confidence,
+    )
 
 
 @router.get("/meow/stats")
 async def get_meow_stats(db: AsyncSession = Depends(get_db)) -> dict:
-    stats = await meow_service.get_stats(db)
+    min_confidence = await settings_service.get_meow_min_confidence(db)
+    stats = await meow_service.get_stats(db, min_confidence=min_confidence)
     stats["detection_enabled"] = bool(meow_control_state["device_enabled"])
     stats["desired_enabled"] = bool(meow_control_state["desired_enabled"])
     stats["device_enabled"] = bool(meow_control_state["device_enabled"])
