@@ -41,6 +41,7 @@ async def mock_meow(db: AsyncSession = Depends(get_db)) -> dict:
 
     confidence = round(random.uniform(0.5, 1.0), 2)
     threshold = await settings_service.get_meow_threshold(db)
+    min_confidence = await settings_service.get_meow_min_confidence(db)
     is_cat = confidence >= threshold
     recorded_at = datetime.utcnow()
     return await save_event(
@@ -48,6 +49,7 @@ async def mock_meow(db: AsyncSession = Depends(get_db)) -> dict:
         device_id=device_id,
         score=confidence,
         is_cat=is_cat,
+        min_confidence=min_confidence,
         recorded_at=recorded_at,
         source="mock",
     )

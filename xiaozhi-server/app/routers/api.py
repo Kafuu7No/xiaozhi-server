@@ -7,7 +7,7 @@ import logging
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -120,7 +120,11 @@ async def get_app_settings(db: AsyncSession = Depends(get_db)) -> dict[str, Any]
 
 class AppSettingsRequest(BaseModel):
     meowThreshold: float | None = None
-    meowMinConfidence: float | None = None
+    meowMinConfidence: float | None = Field(
+        default=None,
+        ge=settings_service.MEOW_MIN_CONFIDENCE_MIN,
+        le=settings_service.MEOW_MIN_CONFIDENCE_MAX,
+    )
     tempMax: float | None = None
     humidMin: float | None = None
     humidMax: float | None = None

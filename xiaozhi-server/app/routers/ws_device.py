@@ -376,6 +376,7 @@ async def _handle_meow(data: dict, session_id: str) -> None:
 
     async with async_session() as db:
         threshold = await settings_service.get_meow_threshold(db)
+        min_confidence = await settings_service.get_meow_min_confidence(db)
         parsed = meow_service.parse_meow_payload(data, threshold)
         if not parsed:
             logger.warning("Meow message missing score (session=%s)", session_id)
@@ -386,6 +387,7 @@ async def _handle_meow(data: dict, session_id: str) -> None:
             device_id=session.device_id,
             score=parsed["score"],
             is_cat=parsed["is_cat"],
+            min_confidence=min_confidence,
             ts=parsed.get("ts"),
             source="meow",
         )

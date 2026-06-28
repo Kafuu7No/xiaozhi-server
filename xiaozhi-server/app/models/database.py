@@ -69,6 +69,7 @@ class AppSetting(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     meow_threshold: Mapped[float] = mapped_column(Float, default=0.6)
+    meow_min_confidence: Mapped[float] = mapped_column(Float, default=0.4)
     temp_max: Mapped[float] = mapped_column(Float, default=35.0)
     humid_min: Mapped[float] = mapped_column(Float, default=30.0)
     humid_max: Mapped[float] = mapped_column(Float, default=80.0)

@@ -111,7 +111,7 @@ async def test_device_ws_drops_low_confidence_meow(db_ready):
 
     assert events == []
     assert stats["today_total"] == 0
-    assert stats["min_confidence"] == 0.5
+    assert stats["min_confidence"] == 0.4
 
 
 @pytest.mark.asyncio
